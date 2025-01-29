@@ -1,0 +1,4 @@
+{
+    "cmake.options.statusBarVisibility": "icon",
+    "makefile.configureOnOpen": true
+}
