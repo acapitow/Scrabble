@@ -1,0 +1,17 @@
+Dans un projet en C bien structuré, on sépare généralement le code en plusieurs fichiers pour éviter un fichier énorme et faciliter la maintenance.
+
+Un bon projet C suit cette structure :
+
+Fichiers d'en-tête (.h) → Déclaration des structures et prototypes de fonctions.
+Fichiers source (.c) → Implémentation des fonctions.
+Un fichier main.c → Contient le point d'entrée (main()).
+
+Fichier			Contenu
+
+main.c			Gère le déroulement du jeu (initialisation, boucle de jeu, affichage)
+board.c / board.h	Gestion du plateau Scrabble (t_board), affichage, allocation mémoire
+easel.c / easel.h	Gestion du chevalet des joueurs (t_easel), tirage des lettres
+letter.c / letter.h	Gestion des lettres (t_letter), génération du sac de lettres
+game.c / game.h		Règles du jeu : placement des mots, calcul des scores, vérifications
+utils.c / utils.h	Fonctions auxiliaires : affichage du jeu, gestion mémoire
+Makefile		Compilation automatisée

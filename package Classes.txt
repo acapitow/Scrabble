@@ -1,0 +1,1986 @@
+package Classes;
+
+public class Altruistic extends NPC{
+    String DEFAULT_NAME ="Merchant";
+    int DEFAULT_VOLUME = 150;
+
+    public Altruistic(String name, int volume, int healthPoints, int bagVolume, Container bag, String dialogue,Location location) {
+        super(name, volume, healthPoints, bag, dialogue,location);
+    }
+
+
+    @Override
+    public void use() {
+        if (getHealthPoints() >= 0) {
+            System.out.println("Contents of " + getName() + "'s sacoche:");
+            getBag().use();
+        }
+
+    }
+
+    public void use(Hero hero) {
+        String itemToGive = getBag().getItems().get(0).getName();
+        if (getBag().getItems().isEmpty()) {
+            System.out.println(getName() + " n'a rien dans sa sacoche à donner.");
+        }
+        else if (hero.getInventory().addItem(getBag().getItems().get(0))) {
+            getBag().removeItem(itemToGive);
+            System.out.println(getName() + "donne" + itemToGive + " à " + hero);
+        }
+        else {
+            System.out.println(hero + " n'a pas assez de place pour recevoir " + itemToGive);
+        }
+
+    }
+
+
+
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+
+public class Arrow extends Item {
+    private final static int DEFAULT_VOLUME = 1;
+    private final static String DEFAULT_NAME = "Arrow";
+    
+    public Arrow(Location location) {
+        super(Arrow.DEFAULT_NAME,Arrow.DEFAULT_VOLUME,location);
+    }
+  
+    public void look() {
+        System.out.println("You can use this Arrow to reload Your Bow");
+    }
+
+    public void use(Item item) {
+        if (item instanceof Bow) {
+            Bow bow = (Bow) item;
+            if (this.getLocation().getLabyrinth().getHero().getInventory().getItems().remove(this)) {
+                bow.addArrow(1);
+                System.out.println("You have reloaded your bow with one arrow.");
+            } else {
+                System.out.println("No arrow available in the inventory to reload the bow.");
+            }
+        } else {
+            System.out.println("This item is not a bow. You cannot use an arrow with it.");
+        }
+    }    
+
+    @Override
+    public void use() {
+        
+    }
+    
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public class Beverage extends Item  {
+    private final int restoreEnergy;
+    private final static int DEFAULT_VOLUME = 1;
+    private final static int DEFAULT_ENERGY = 50;
+
+    public Beverage(String name, int volume, int restoreEnergy,Location location) {
+        super(name, volume,location);
+        this.restoreEnergy = restoreEnergy;
+    }
+
+    public Beverage(String name, int restoreEnergy,Location location) {
+        super(name, Beverage.DEFAULT_VOLUME,location);
+        this.restoreEnergy = restoreEnergy;
+    }
+    
+    public Beverage(String name,Location location) {
+        super(name, Beverage.DEFAULT_VOLUME,location);
+        this.restoreEnergy = Beverage.DEFAULT_ENERGY;
+    }
+   
+    public void look() {
+        System.out.println("When used." +this.getName() +" restores " + this.restoreEnergy + " Energy points.");
+    }
+
+    @Override
+    public void use() {
+        Hero hero = this.getLocation().getLabyrinth().getHero();
+        int currentEnergy = hero.getEnergy();
+        hero.setEnergy(currentEnergy + restoreEnergy);
+        hero.getInventory().getItems().remove(this);
+        System.out.println(this.getName() + " has been consumed and restored. Hero's energy is now " + hero.getEnergy() + ".");
+    }
+    
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public class Bow extends Weapon {
+    public static int DEFAULT_DAMAGE = 20;
+    public static int DEFAULT_ARROW = 1;
+    private int arrow;
+    
+    public Bow(String name, int volume,Location location) {
+        super(name,volume,location);
+        this.arrow= Bow.DEFAULT_ARROW;
+    }
+    
+    public Bow(String name,Location location) {
+        super(name,location);
+        this.arrow= Bow.DEFAULT_ARROW;
+    }
+
+    void addArrow(int i) {
+        this.arrow ++;
+        System.out.println("Bow reloaded with arrow");
+    }
+    
+    @Override
+    public void attackWeapon(Container inventory,Character target){
+        if(this.arrow <=0){
+            System.out.println("That "+ this.getName()+ " does'not have enough Arrows.");            
+        } else {
+            System.out.println("With your "+ this.getName()+ " you used 1 Arrow.");
+            super.attackWeapon(inventory, target);
+            this.arrow--;
+        }
+    }
+    
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public abstract class Character extends Item {
+    private int healthPoints;
+    private final Container bag;
+    private final static int DEFAULT_BAG_VOLUME = 11;
+
+    public Character(String name, int volume, int healthPoints,Location location) {
+        super(name, volume,location);
+        this.healthPoints = healthPoints;
+        this.bag = new Container("Bag", Character.DEFAULT_BAG_VOLUME,location );
+    }
+    
+    public Character(String name, int volume, int healthPoints, Container bag,Location location) {
+        super(name, volume,location);
+        this.healthPoints = healthPoints;
+        this.bag = bag;
+    }
+    
+    
+
+    public int getHealthPoints() {
+        return healthPoints;
+    }
+
+
+    public void setHealthPoints(int damage) {
+    this.healthPoints = Math.max(0, this.healthPoints - damage);
+    }
+
+
+    public Container getBag() {
+        return bag;
+    }
+
+
+    @Override
+    public void use() {
+        System.out.println("On ne peut use un character");
+    }
+    
+    public abstract void look() ;
+
+    void Attack() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    void killed() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+}
+
+package Classes;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Container extends Item {
+    private final int maxVolume;
+    private int contentVolume;
+    private final List<Item> items;
+    private final static int DEFAULT_VOLUME = 10;
+    private final static int DEFAULT_CONTENT_VOLUME = 0;
+    private final static int DEFAULT_MAX_VOLUME = 50;
+
+    public Container(String name, int volume, int maxVolume,Location location) {
+        super(name, volume,location);
+        this.maxVolume = maxVolume;
+        this.contentVolume = Container.DEFAULT_CONTENT_VOLUME;
+        this.items = new ArrayList<>();
+    }
+
+    public Container(String name,Location location) {
+        super(name, Container.DEFAULT_VOLUME,location);
+        this.maxVolume = Container.DEFAULT_MAX_VOLUME;
+        this.contentVolume = Container.DEFAULT_CONTENT_VOLUME;
+        this.items = new ArrayList<>();
+    }
+
+    Container(String name, int Volume,Location location) {
+       super(name, Container.DEFAULT_VOLUME,location);
+       this.maxVolume = Container.DEFAULT_MAX_VOLUME;
+       this.contentVolume = Container.DEFAULT_CONTENT_VOLUME;
+       this.items = new ArrayList<>();
+    }
+
+    public boolean addItem(Item item) {
+        int itemVolume = item.getVolume();
+        if (contentVolume + itemVolume <= maxVolume) {
+            items.add(item);
+            contentVolume += itemVolume;
+            return true;
+        } else {
+            System.out.println("Cannot add "+ item.getName() +" : Not enough space in the " + this.getName() +".");
+            return false;
+        }
+    }
+
+    public boolean removeItem(String itemName) {
+        Item itemToRemove = getItem(itemName);
+        if (itemToRemove != null) {
+            items.remove(itemToRemove);
+            contentVolume -= itemToRemove.getVolume();
+            return true;
+        } else {
+            System.out.println("Item not found in the container.");
+            return false;
+        }
+    }
+
+    public List<Item> getItems() {
+        return items;
+    }
+
+    public Item getItem(String itemName) {
+        for (Item item : items) {
+            if (item.getName().equalsIgnoreCase(itemName)) {
+                return item;
+            }
+        }
+        return null; 
+    }
+
+    @Override
+    public void use() {
+        if(this.contentVolume ==0){
+            System.out.println("There is nothing in this " + this.getName() + ".");
+        } 
+        else {
+            System.out.println(this.getName() + " contents:");
+        items.forEach((item) -> {
+            System.out.println("- " + item.description());
+        });
+        }       
+        System.out.println("Available volume: " + (maxVolume - contentVolume));
+    }
+
+    public void clear() {
+        items.clear();
+        contentVolume = Container.DEFAULT_CONTENT_VOLUME;
+    }
+
+    public Boolean isAvailable(String itemName) {
+        return items.stream().anyMatch(item -> item.getName().equalsIgnoreCase(itemName));
+    }
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public class Enemy extends Character {
+    private final int attackDamage;
+    private int healthPoints;
+    private final static int DEFAULT_VOLUME = 11;
+    private final static int DEFAULT_HP = 20;
+    private final static int DEFAULT_AD = 11;
+
+    public Enemy(String name,int AD, Container bag,Location location) {
+        super(name, Enemy.DEFAULT_VOLUME,Enemy.DEFAULT_HP,bag, location);
+        this.attackDamage = AD;
+    }
+    
+    public Enemy(String name, Container bag,Location location) {
+        super(name, Enemy.DEFAULT_VOLUME,Enemy.DEFAULT_HP,bag,location);
+        this.attackDamage = Enemy.DEFAULT_AD;
+    }
+    
+    public Enemy(String name,Location location){
+        super(name, Enemy.DEFAULT_VOLUME,Enemy.DEFAULT_HP, location);
+        this.attackDamage = Enemy.DEFAULT_AD;
+    }
+    
+    public void attack(Hero hero) {
+        hero.setHealth(hero.getHealth() - attackDamage);
+        System.out.println(getName() + " attacks! Hero's health is now " + hero.getHealth());
+    }
+
+    @Override
+    public void use() {
+        if (healthPoints <= 0) {
+            System.out.println("Contents of " + getName() + "'s sacoche:");
+            getBag().use();
+        }
+        else {
+            System.out.println(getName() + " is still alive. You can't access their sacoche.");
+        }
+
+    }
+    
+    public int getAttackDamage() {
+        return attackDamage;
+    }
+    
+    @Override
+    public void look() {
+        System.out.println(this.getClass().getSimpleName() + " : " + getName() + ", Hp: " +getHealthPoints() + "Attack Damage: " + getAttackDamage() + ", Bag Volume: " + getVolume() +"." );
+    }
+    
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+import java.io.Serializable;
+
+/**
+ * @author asmina Moustoifa
+ * @author André Claude Capito
+ */
+public class Exit implements Serializable{
+    private Location location;
+    private final String targetLocationName;
+    private boolean opened;
+
+    public Exit(String targetLocationName){
+        this.targetLocationName=targetLocationName;
+        opened = false;
+    }
+    
+    public Exit(String targetLocationName,boolean opened){
+        this.targetLocationName=targetLocationName;
+        this.opened = opened;
+    }
+
+    public void open(){
+        if(!isOpened()){
+            setOpened(true);
+        }
+    }
+    public  void close(){
+        if(isOpened())
+        {
+            setOpened(false);
+        }
+    }
+    public boolean isOpened(){
+        return opened;
+    }
+
+    public void setOpened(boolean opened) {
+        this.opened = opened;
+    }
+    
+     public void use(){
+        open();
+         System.out.println("You have opened the exit.");
+    }
+     
+    public Location getLocation() {
+        return this.location;
+    }
+
+    public String getTargetLocationName() {
+        return this.targetLocationName;
+    }
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+import java.io.Serializable;
+
+/**
+ * @author asmina Moustoifa
+ * @author André Claude Capito
+ */
+public class Exit implements Serializable{
+    private Location location;
+    private final String targetLocationName;
+    private boolean opened;
+
+    public Exit(String targetLocationName){
+        this.targetLocationName=targetLocationName;
+        opened = false;
+    }
+    
+    public Exit(String targetLocationName,boolean opened){
+        this.targetLocationName=targetLocationName;
+        this.opened = opened;
+    }
+
+    public void open(){
+        if(!isOpened()){
+            setOpened(true);
+        }
+    }
+    public  void close(){
+        if(isOpened())
+        {
+            setOpened(false);
+        }
+    }
+    public boolean isOpened(){
+        return opened;
+    }
+
+    public void setOpened(boolean opened) {
+        this.opened = opened;
+    }
+    
+     public void use(){
+        open();
+         System.out.println("You have opened the exit.");
+    }
+     
+    public Location getLocation() {
+        return this.location;
+    }
+
+    public String getTargetLocationName() {
+        return this.targetLocationName;
+    }
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ * @author asmina Moustoifa
+ */
+public abstract class ExitLock extends Exit{
+    private boolean locked;
+    
+    public ExitLock(String name){
+        super(name);
+    }
+    public boolean isLocked() {
+        return locked;
+    }
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+    abstract public String descrition();
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+import java.util.Iterator;
+
+
+/**
+ * @author asmina Moustoifa
+ */
+public class ExitLockWithKey  extends ExitLock implements Lockable{
+    public static int numberUsedKey;
+
+
+    public ExitLockWithKey (String targetLocationName){
+        super(targetLocationName);
+        super.setLocked(true);
+        numberUsedKey=1;
+    }
+    
+    public boolean inputKey(Container inventory) {
+        if (inventory.getItems().stream().anyMatch((item) -> (item instanceof Key))) {
+            return true;
+        } // Une clé est présente dans l'inventaire
+        System.out.println("No key in the inventory.");
+        return false; // Aucune clé trouvée
+    }
+
+    @Override
+    public void lock(){
+        if(!super.isLocked()){
+            super.setLocked(true);
+        }
+    }
+    @Override
+    public void unlock(){
+        if(isLocked()){
+            super.setLocked(false);
+            numberUsedKey--;
+        }
+    }
+    
+    public boolean isUnLockable(){
+        return numberUsedKey == 1;
+    }
+    
+    
+    @Override
+    public void open(){
+        if(isUnLockable() && isLocked() && !isOpened())
+        {
+            super.setOpened(true);
+            unlock();
+        }
+    }
+    @Override
+    public void close() {
+        if(!isUnLockable()&& super.isOpened())
+        {
+            lock();
+        }
+    }
+    public int getNumberUsedKey() {
+        return numberUsedKey;
+    }
+    
+    @Override
+    public void use(){
+        Container inventory = this.getLocation().getLabyrinth().getHero().getInventory();
+        if(inputKey(inventory)){
+            this.unlock();
+            open();
+            inventory.removeItem("Key");
+            System.out.println("The door is open.");            
+
+        }else if(!isUnLockable()){
+            System.out.println("Unable to open this door: the number of times this door can be opened has been exhausted.");
+            
+        }else {
+            System.out.println("Sorry,This exit is locked with a key");
+        }
+    }
+    @Override
+    public String descrition()
+    {
+        return "ExitWithLockKey: "+this.getTargetLocationName()+" / isUnLockable:" + this.isUnLockable() + "/ isOpened :" +this.isOpened() + "/ numberUsedKey:" + this.getNumberUsedKey();
+    }
+    
+    @Override
+    public boolean isLocked() {
+
+        return super.isLocked();
+    }
+    @Override
+    public boolean isOpened() {
+        if(isUnLockable()){
+            return super.isOpened();
+        }
+        return false;
+    }
+
+}/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+import java.util.Iterator;
+
+
+/**
+ * @author asmina Moustoifa
+ */
+public class ExitLockWithKey  extends ExitLock implements Lockable{
+    public static int numberUsedKey;
+
+
+    public ExitLockWithKey (String targetLocationName){
+        super(targetLocationName);
+        super.setLocked(true);
+        numberUsedKey=1;
+    }
+    
+    public boolean inputKey(Container inventory) {
+        if (inventory.getItems().stream().anyMatch((item) -> (item instanceof Key))) {
+            return true;
+        } // Une clé est présente dans l'inventaire
+        System.out.println("No key in the inventory.");
+        return false; // Aucune clé trouvée
+    }
+
+    @Override
+    public void lock(){
+        if(!super.isLocked()){
+            super.setLocked(true);
+        }
+    }
+    @Override
+    public void unlock(){
+        if(isLocked()){
+            super.setLocked(false);
+            numberUsedKey--;
+        }
+    }
+    
+    public boolean isUnLockable(){
+        return numberUsedKey == 1;
+    }
+    
+    
+    @Override
+    public void open(){
+        if(isUnLockable() && isLocked() && !isOpened())
+        {
+            super.setOpened(true);
+            unlock();
+        }
+    }
+    @Override
+    public void close() {
+        if(!isUnLockable()&& super.isOpened())
+        {
+            lock();
+        }
+    }
+    public int getNumberUsedKey() {
+        return numberUsedKey;
+    }
+    
+    @Override
+    public void use(){
+        Container inventory = this.getLocation().getLabyrinth().getHero().getInventory();
+        if(inputKey(inventory)){
+            this.unlock();
+            open();
+            inventory.removeItem("Key");
+            System.out.println("The door is open.");            
+
+        }else if(!isUnLockable()){
+            System.out.println("Unable to open this door: the number of times this door can be opened has been exhausted.");
+            
+        }else {
+            System.out.println("Sorry,This exit is locked with a key");
+        }
+    }
+    @Override
+    public String descrition()
+    {
+        return "ExitWithLockKey: "+this.getTargetLocationName()+" / isUnLockable:" + this.isUnLockable() + "/ isOpened :" +this.isOpened() + "/ numberUsedKey:" + this.getNumberUsedKey();
+    }
+    
+    @Override
+    public boolean isLocked() {
+
+        return super.isLocked();
+    }
+    @Override
+    public boolean isOpened() {
+        if(isUnLockable()){
+            return super.isOpened();
+        }
+        return false;
+    }
+
+}
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ * @author Asmina moustoifa
+ */
+public class ExitWithLockCode extends ExitLock implements Lockable {
+    private static  final int CODE;
+
+
+    static {
+        CODE = 123;
+    }
+    public ExitWithLockCode(String name){
+        super(name);
+        super.setLocked(true);
+    }
+    public boolean inputCode(int code) {
+            if (CODE == code) {
+                return true;
+            }
+          System.out.println("The code is incorrect.");
+          return false;
+    }
+    @Override
+    public void lock(){
+        if(!super.isLocked()){
+            super.setLocked(true);
+        }
+    }
+    @Override
+    public void unlock(){
+        if(super.isLocked()){
+            super.setLocked(false);
+        }
+    }
+    public int getCode() {
+
+        return CODE;
+    }
+    @Override
+    public void open(){
+        if(super.isLocked() && !isOpened())
+        {
+            super.setOpened(true);
+            unlock();
+        }
+    }
+    @Override
+    public void close() {
+        if(!isLocked()&& super.isOpened())
+        {
+            lock();
+        }
+    }
+    public void use(int code){
+        if(inputCode(code)){
+            open();
+            System.out.println("The door is open.");
+            
+
+        }else{
+            System.out.println("You need a code to unlock this exit.");
+            
+        }
+    }
+    @Override
+    public String descrition()
+    {
+        return "ExitWithLockCode :" + this.getTargetLocationName() + "/ isLocked:" + this.isLocked() + "/ isOpened:" + this.isOpened();
+    }
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public class Healing extends Item {
+    private final int restoreHealth;
+    private final static int DEFAULT_VOLUME = 1;
+    private final static int DEFAULT_HEAL = 50;
+    
+    public Healing(String name, int volume, int restoreHealth,Location location) {
+        super(name, volume,location);
+        this.restoreHealth = restoreHealth;
+    }
+    
+    public Healing(String name, int restoreHealth,Location location) {
+        super(name, Healing.DEFAULT_VOLUME,location);
+        this.restoreHealth = restoreHealth;
+    }
+
+    public Healing(String name,Location location) {
+        super(name, Healing.DEFAULT_VOLUME,location);
+        this.restoreHealth = Healing.DEFAULT_HEAL;
+    }
+    
+    public void look() {
+        System.out.println("When used." +this.getName() +" restores " + restoreHealth + " health points.");
+    }
+
+    @Override
+    public void use() {
+        Hero hero = this.getLocation().getLabyrinth().getHero();
+        int currentHealth = hero.getHealth();
+        hero.setHealth(currentHealth + restoreHealth);
+        System.out.println(this.getName() + " has been consumed. Hero's health is now " + hero.getHealth() + ".");
+    }
+
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+import game.Labyrinth;
+import java.io.Serializable;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public class Hero implements Serializable{
+    private int health;
+    private int energy;
+    private final Labyrinth labyrinth;
+    private final Container inventory;
+    private final static int DEFAULT_MAX_VOLUME = 9;
+    private final static int MAX_HEALTH = 100;
+    private final static int MAX_ENERGY = 100;
+    private final static String DEFAULT_INVENTORY_NAME = "Inventory";
+    
+    
+    public Hero(Labyrinth labyrinth) {
+        this.health = 100;
+        this.energy = 100;
+        this.labyrinth = labyrinth;
+        this.inventory = new Container(Hero.DEFAULT_INVENTORY_NAME,Hero.DEFAULT_MAX_VOLUME,this.labyrinth.getCurrentLocation());
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+    this.health = Math.max(0, Math.min(health, MAX_HEALTH));
+    }
+
+    public void setEnergy(int energy) {
+        this.energy = Math.max(0, Math.min(energy, MAX_ENERGY));
+    }
+
+    public int getEnergy() {
+        return energy;
+    }
+
+    public Container getInventory() {
+        return inventory;
+    }
+    
+    public Boolean attack(){
+        return true;
+    }
+    
+    public Boolean attack(Character character, Weapon weapon) {
+            weapon.attackWeapon(inventory, character);
+            character.Attack();
+            System.out.println("Hero attacks "+ character.getName() +" ."+character.getName()+"'s health is now " + character.getHealthPoints());
+            if (character.getHealthPoints() <= 0) {
+                character.killed();
+                return false;
+            } else {
+                return true;
+            }
+            
+    }
+
+
+    public void copyFrom(Hero hero) {
+    // Copier les points de santé
+    this.health = hero.getHealth();
+
+    // Copier l'énergie
+    this.energy = hero.getEnergy();
+
+    // Copier les éléments de l'inventaire
+    this.inventory.clear(); 
+    hero.getInventory().getItems().forEach((Item item) -> {
+        this.inventory.addItem(item);
+        });
+}
+
+}
+
+package Classes;
+
+import java.io.Serializable;
+
+/**
+ * Item est la classe abstraite représentant tout objet dans le jeu (armes,
+ * potions, conteneurs...).
+ */
+public abstract class Item implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private final String name;
+    private final int volume; // volume que l'objet occupe
+    private Location location; // la location où se trouve l'objet
+
+    public Item(String name, int volume, Location location) {
+        if (name == null || name.isEmpty()) {
+            throw new IllegalArgumentException("Item name cannot be null or empty.");
+        }
+        if (volume < 0) {
+            throw new IllegalArgumentException("Item volume cannot be negative.");
+        }
+
+        this.name = name;
+        this.volume = volume;
+        this.location = location;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getVolume() {
+        return volume;
+    }
+
+    public Location getLocation() {
+        return this.location;
+    }
+
+    /**
+     * Met à jour la location de l'item.
+     */
+    public void setLocation(Location newLocation) {
+        this.location = newLocation;
+    }
+
+    /**
+     * Méthode d'utilisation de l'objet, à implémenter dans les sous-classes.
+     */
+    public abstract void use();
+
+    /**
+     * Retourne une description textuelle de l'objet.
+     */
+    public String description() {
+        return this.getClass().getSimpleName()
+               + " : " + name
+               + ", Volume: " + volume;
+    }
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public class Key extends Item {
+    private static final int DEFAULT_VOLUME = 1;
+    private static final String DEFAULT_NAME = "Key";
+    
+    public Key(Location location){
+        super(Key.DEFAULT_NAME,Key.DEFAULT_VOLUME,location);
+    }    
+
+    public void look() {
+        System.out.println("This " + this.getName() + " is ready to be used.");
+    }
+
+    public void use( Item item) {
+        if (item instanceof SafeWithLock) {
+            SafeWithLock safeLocked = (SafeWithLock) item;            
+            if (this.getLocation().getLabyrinth().getHero().getInventory().getItems().remove(this)) {
+                safeLocked.unlock();
+                System.out.println("You have opened this " + safeLocked.getName() +" with one Key.");
+            } else {
+                System.out.println("No Key available in the inventory to open the safeLocked.");
+            }
+        } else {
+            System.out.println("This "+ item.getName() + " is not a safeLocked. You cannot use a Key with it.");
+        }
+    }
+
+    @Override
+    public void use() {
+        
+    }
+    
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+import game.Labyrinth;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Location implements Serializable{
+    private final String name;
+    private final Container inventory;
+    private final Map<String, Exit> exits;
+    private static final int DEFAULT_VOLUME = 100;
+    private final Labyrinth labyrinth;
+
+    public Location(String name, int inventoryVolume,Labyrinth labyrinth) {
+        this.name = name;
+        this.inventory = new Container(name,inventoryVolume,this);
+        this.exits = new HashMap<>();
+        this.labyrinth = labyrinth;
+    }
+    
+    public Location(String name,Labyrinth labyrinth) {
+        this.name = name;
+        this.inventory = new Container(name,Location.DEFAULT_VOLUME,this);
+        this.exits = new HashMap<>();
+        this.labyrinth = labyrinth;
+    }
+    
+    public String getName() {
+        return name;
+    }
+
+    public Container getInventory() {
+        return inventory;
+    }
+
+    public void addExit(String direction, Exit exit) {
+        exits.put(direction, exit);
+    }
+
+    public Exit getExit(String direction) {
+        return exits.get(direction);
+    }
+    
+    public Labyrinth getLabyrinth() {
+        return this.labyrinth;
+    }
+
+    public void describe() {
+        System.out.println("You are in the " + name + ".");
+        System.out.print("This ");
+        inventory.use();
+        System.out.println("Exits:");
+        exits.keySet().forEach((direction) -> {
+            System.out.println("- " + direction);
+        });
+    }
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public interface Lockable {
+  
+    public void lock();
+
+    public void unlock();
+    
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+
+public class NPC extends Character {
+    private final String dialogue;
+    private final static int DEFAULT_VOLUME = 11;
+    private final static int DEFAULT_HP = 11;
+    private final static String DEFAULT_DIALOGUE = "Hello ! Welcome";
+
+    public NPC(String name, int volume, int healthPoints, Container bag, String dialogue,Location location) {
+        super(name, volume, healthPoints,bag,location);
+        this.dialogue = dialogue;
+    }
+    
+    public NPC(String name, Container bag,String dialogue,Location location) {
+        super(name, NPC.DEFAULT_VOLUME, NPC.DEFAULT_HP,bag,location);
+        this.dialogue = dialogue;
+    }
+    
+    public NPC(String name, Container bag,Location location) {
+        super(name, NPC.DEFAULT_VOLUME, NPC.DEFAULT_HP,bag,location);
+        this.dialogue = NPC.DEFAULT_DIALOGUE;
+    }
+    
+    public NPC(String name,Location location) {
+        super(name, NPC.DEFAULT_VOLUME, NPC.DEFAULT_HP,location);
+        this.dialogue = NPC.DEFAULT_DIALOGUE;
+    }
+
+    public void talk() {
+        System.out.println(getName() + " says: " + dialogue);
+    }
+
+    @Override
+    public void use() {
+        this.getBag().use();
+    }
+
+
+    public void use(String itemName, Hero hero) {
+        String itemToGive = getBag().getName();
+        if (getBag().getItems().isEmpty()) {
+            System.out.println(getName() + " n'a rien dans sa sacoche à donner.");
+        }
+        else if (hero.getInventory().addItem(getBag().getItem(itemName))) {
+            getBag().removeItem(itemToGive);
+            System.out.println(getName() + "donne" + itemToGive + " à " + hero);
+        }
+        else {
+            System.out.println(hero + " n'a pas assez de place pour recevoir " + itemToGive);
+        }
+
+    }
+
+    public void Attacked() {
+    String[] phrases = {
+        "Ouch !",
+        "Why did you do that !?",
+        "You will regret this !"
+    };
+
+    int randomIndex = (int) (Math.random() * phrases.length);
+    System.out.println(this.getName() + " says : " +phrases[randomIndex]);
+    }
+    
+    @Override
+    public void look() {
+        System.out.println(this.getClass().getSimpleName() + " : " + getName() + ", Hp: " +getHealthPoints() +  ", Volume: " + getVolume() + "." );
+    }
+    
+}
+
+package Classes;
+
+import java.util.Iterator;
+
+public class SafeWithLock extends Container implements Lockable{
+        private Boolean locked;
+
+        public SafeWithLock(String name, int volume, int maxVolume,Location location) {
+            super(name, volume, maxVolume,location);
+            this.locked = true;
+        }
+
+        public SafeWithLock(String name,Location location) {
+            super(name,location);
+            this.locked = true;
+        }
+
+        public boolean inputKey(Container inventory) {
+            Iterator<Item> iterator = inventory.getItems().iterator();
+            while (iterator.hasNext()) {
+                Object object = iterator.next();
+                if (object instanceof Key) {
+                    iterator.remove();
+                    return true;
+                }
+            }
+            System.out.println("No key in the inventory.");
+             return false;
+        }
+
+        @Override
+        public int getVolume() {
+            return super.getVolume();
+        }
+        @Override
+        public void lock(){
+            if(!getLocked()){
+                this.locked = true;
+            }
+        }
+        @Override
+        public void unlock(){
+            if(getLocked()){
+                this.locked = false;
+            }
+        }
+        public Boolean getLocked(){
+            return this.locked;
+        }
+
+
+        public void use(Container inventory){
+           // System.out.println("You need a key to unlock this safe.");
+            if(inputKey(inventory) && getLocked()){
+                System.out.println("The safe is open.");
+                super.use();
+            }else if(!getLocked()){
+                System.out.println("The safe is already open");
+                super.use();
+
+            }else{
+                System.out.println("You need a key to unlock this safe.");
+            }
+        }
+        
+         @Override
+        public void use() {
+            if (!this.getLocked()) {
+                super.use();
+            } else {
+                System.out.println("this "+ this.getName() +" is locked.");
+            }
+        }
+
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+
+public class Sharpener extends Item{
+    private final static int DEFAULT_VOLUME = 1;
+    private final static String DEFAULT_NAME = "Sharpener";
+    
+    public Sharpener(Location location) {
+        super(Sharpener.DEFAULT_NAME ,Sharpener.DEFAULT_VOLUME,location);
+    }
+    
+    @Override
+    public void use() {
+        System.out.println("You can use this Sharpener to repair Your Weapon");
+    }
+
+    public void use(Item item) {
+        if (item instanceof Weapon) {
+            Weapon weapon = (Weapon) item;
+            if (this.getLocation().getInventory().getItems().remove(this)) {
+                weapon.repair(1);
+                System.out.println("You have repaired your weapon with one Sharpener.");
+            } else {
+                System.out.println("No Sharpener available in the inventory to repair the weapon.");
+            }
+        } else {
+            System.out.println("This item is not a weapon. You cannot use a Sharpener with it.");
+        }
+    }
+    
+    
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+
+public class Sword extends Weapon {
+
+    public Sword(String name, int volume,Location location) {
+        super(name, volume,location);
+    }
+    
+    public Sword(String name,Location location) {
+        super(name,location);
+    }
+    
+    
+    
+}
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package Classes;
+
+/**
+ *
+ * @author André Claude Capito
+ */
+public abstract class Weapon extends Item {
+    private int durability;
+    private final int damage;
+    private static int DEFAULT_DURABILITY = 4;
+    private static int DEFAULT_DAMAGE = 10;
+    private final static int DEFAULT_VOLUME = 2;
+    
+    public Weapon(String name,int damage,Location location) {
+        super(name, Weapon.DEFAULT_VOLUME,location);
+        this.durability = Weapon.DEFAULT_DURABILITY;
+        this.damage = damage;
+    }
+    
+    public Weapon(String name, int volume,int durability,int damage,Location location) {
+        super(name, volume,location);
+        this.durability = durability;
+        this.damage = damage;
+    }
+    
+    public Weapon(String name,Location location) {
+        super(name, Weapon.DEFAULT_VOLUME,location);
+        this.durability = Weapon.DEFAULT_DURABILITY;
+        this.damage = Weapon.DEFAULT_DAMAGE;
+    }
+    
+
+    public int getDurability() {
+        return durability;
+    }
+
+    @Override
+    public void use() {
+        if (durability > 0) {
+            System.out.println(getName() + " is usable.Durability left: " + durability);
+        } else {
+            System.out.println(getName() + " is barely broken and cannot be used.");
+        }
+    }
+    
+    public void consumeDurability() {
+        if (durability <= 0) {
+        }
+        else {
+            this.durability--;
+        }
+    }
+
+    void repair(int i) {
+        this.durability ++;
+    }
+    
+    public void attackWeapon(Container inventory,Character target){
+        if(this.durability <=0){
+            System.out.println("Your "+ this.getName()+ " broke.");
+            target.setHealthPoints(this.damage);
+            inventory.removeItem(this.getName());
+        } else {
+            target.setHealthPoints(this.damage);
+            this.consumeDurability();
+        }
+    }
+    
+}
+
+package game;
+
+import Classes.*;
+import java.io.*;
+
+public class CommandHandler {
+    private final Labyrinth labyrinth;
+
+    public CommandHandler(Labyrinth labyrinth) {
+        this.labyrinth = labyrinth;
+    }
+
+    /**
+     * Analyse la ligne de commande du joueur et invoque l’action correspondante.
+     */
+    public void handleCommand(String commandLine) {
+        if (commandLine == null || commandLine.trim().isEmpty()) {
+            System.out.println("No command entered.");
+            return;
+        }
+
+        String[] parts = commandLine.trim().split("\\s+");
+        String command = parts[0].toUpperCase();
+
+        switch (command) {
+            case "GO":
+                if (parts.length > 1) {
+                    go(parts[1]);
+                } else {
+                    System.out.println("Go where?");
+                }
+                break;
+            case "HELP":
+                help();
+                break;
+            case "LOOK":
+                look(parts.length > 1 ? parts[1] : null);
+                break;
+            case "ATTACK":
+                attack();
+                break;
+            case "TAKE":
+                if (parts.length > 2) {
+                    take(parts[1], parts[2]);
+                } else {
+                    System.out.println("Take which item in which container?");
+                }
+                break;
+            case "USE":
+                if (parts.length > 1) {
+                    use(parts[1]);
+                } else {
+                    System.out.println("Use what?");
+                }
+                break;
+            case "QUIT":
+                System.out.println("Thanks for playing!");
+                System.exit(0);
+                break;
+            case "TALK":
+                if (parts.length > 1) {
+                    talk(parts[1]);
+                } else {
+                    System.out.println("Talk to who?");
+                }
+                break;
+            case "SAVE":
+                saveGame();
+                break;
+            case "LOAD":
+                loadGame();
+                break;
+            default:
+                System.out.println("Unknown command.");
+        }
+    }
+
+    // === Méthodes associées aux commandes === //
+
+    private void go(String direction) {
+        if (labyrinth.getInCombat()) {
+            System.out.println("You can't do this right now! You are in combat.");
+            return;
+        }
+        Location currentLocation = labyrinth.getCurrentLocation();
+        if (currentLocation == null) {
+            System.out.println("Current location is undefined.");
+            return;
+        }
+
+        // Récupérer la sortie
+        Exit exit = currentLocation.getExit(direction);
+        if (exit == null) {
+            System.out.println("There is no exit in the direction \"" + direction + "\".");
+            return;
+        }
+
+        // Utiliser la sortie
+        exit.use();
+
+        // Changer de location
+        Location newLocation = labyrinth.getLocations().get(exit.getTargetLocationName());
+        if (newLocation != null) {
+            labyrinth.setCurrentLocation(newLocation);
+            System.out.println("Now you are in the " + newLocation.getName() + ".");
+        } else {
+            System.out.println("The exit leads nowhere...");
+        }
+    }
+
+    private void help() {
+        if (labyrinth.getInCombat()) {
+            System.out.println("Available commands in combat: HELP, LOOK, ATTACK, USE, QUIT, SAVE, LOAD");
+        } else {
+            System.out.println("Available commands: GO, HELP, LOOK, ATTACK, TAKE, USE, TALK, SAVE, LOAD, QUIT");
+        }
+    }
+
+    private void look(String target) {
+        Location currentLocation = labyrinth.getCurrentLocation();
+        if (currentLocation == null) {
+            System.out.println("There is nothing to look at.");
+            return;
+        }
+
+        // Si pas de cible, décrire le lieu
+        if (target == null) {
+            currentLocation.describe();
+            return;
+        }
+
+        // Vérifier si le target est dans l'inventaire de la location
+        if (currentLocation.getInventory().isAvailable(target)) {
+            if (currentLocation.getInventory().getItem(target) instanceof NPC) {
+                NPC npc = (NPC) currentLocation.getInventory().getItem(target);
+                System.out.println("You look at " + target + ".");
+                npc.look();
+            } else if (currentLocation.getInventory().getItem(target) instanceof Enemy) {
+                Enemy enemy = (Enemy) currentLocation.getInventory().getItem(target);
+                System.out.println("You look at " + target + ".");
+                enemy.look();
+            } else {
+                // Pour un item quelconque, on "use" pour l'instant.
+                currentLocation.getInventory().getItem(target).use();
+            }
+        } 
+        // Sinon, vérifier si c'est dans l'inventaire du héros
+        else if (labyrinth.getHero().getInventory().isAvailable(target)) {
+            labyrinth.getHero().getInventory().getItem(target).use();
+        } else {
+            System.out.println("There is no " + target + " here.");
+        }
+    }
+
+    private void attack() {
+        // Vérifier si on est déjà en combat
+        if (labyrinth.getInCombat()) {
+            labyrinth.setInCombat(labyrinth.getHero().attack());
+        } else {
+            labyrinth.setInCombat(labyrinth.getHero().attack());
+        }
+    }
+
+    private void take(String itemName, String containerName) {
+        if (labyrinth.getInCombat()) {
+            System.out.println("You can't do this right now! You're in combat.");
+            return;
+        }
+        Location currentLocation = labyrinth.getCurrentLocation();
+        if (currentLocation == null) {
+            System.out.println("No current location defined.");
+            return;
+        }
+
+        // Vérifier si le container demandé existe dans la location
+        if (!currentLocation.getInventory().isAvailable(containerName)) {
+            System.out.println("There is no " + containerName + " here.");
+            return;
+        }
+
+        // Récupérer le conteneur
+        Container container = (Container) currentLocation.getInventory().getItem(containerName);
+        if (!container.isAvailable(itemName)) {
+            System.out.println("There is no " + itemName + " in " + containerName + ".");
+            return;
+        }
+
+        // Tenter d'ajouter l'item dans l'inventaire du héros
+        if (labyrinth.getHero().getInventory().addItem(container.getItem(itemName))) {
+            container.removeItem(itemName);
+            System.out.println("You take " + itemName + " from " + containerName + ".");
+        } else {
+            System.out.println(itemName + " remains in " + containerName + ".");
+        }
+    }
+
+    private void use(String itemName) {
+        // Vérification d'argument déjà faite plus haut
+        // Vérifier si l'item est dans l'inventaire du héros
+        if (labyrinth.getHero().getInventory().isAvailable(itemName)) {
+            labyrinth.getHero().getInventory().getItem(itemName).use();
+        }
+        // Vérifier si l'item est dans la location
+        else if (labyrinth.getCurrentLocation() != null 
+                 && labyrinth.getCurrentLocation().getInventory().isAvailable(itemName)) {
+            labyrinth.getCurrentLocation().getInventory().getItem(itemName).use();
+        } else {
+            System.out.println("There is no " + itemName + " here.");
+        }
+    }
+
+    private void talk(String npcName) {
+        if (labyrinth.getInCombat()) {
+            System.out.println("You can't do this right now! You are in combat.");
+            return;
+        }
+        System.out.println("You talk to " + npcName + ".");
+        // Pour l’instant, pas de logique supplémentaire implémentée.
+    }
+
+    private void saveGame() {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("game_save.dat"))) {
+            out.writeObject(labyrinth);
+            System.out.println("Game saved successfully!");
+        } catch (IOException e) {
+            System.out.println("Failed to save the game: " + e.getMessage());
+        }
+    }
+
+    private void loadGame() {
+        // On délègue la logique de chargement au Labyrinth (pour être cohérent),
+        // mais ta version charge ici directement "game_save.dat".
+        // Si tu préfères, tu peux l'extraire dans Labyrinth.
+
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream("game_save.dat"))) {
+            Labyrinth loadedLabyrinth = (Labyrinth) in.readObject();
+            labyrinth.copyFrom(loadedLabyrinth);
+            System.out.println("Game loaded successfully!");
+            if (labyrinth.getCurrentLocation() != null) {
+                labyrinth.getCurrentLocation().describe();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Failed to load the game: " + e.getMessage());
+        }
+    }
+}
+
+
+package game;
+
+/**
+ *
+ * @author ...
+ */
+public class Game {
+    public static void main(String[] args) {
+        Labyrinth labyrinth = new Labyrinth();
+        labyrinth.start();
+    }
+}
+
+
+package game;
+
+import Classes.Location;
+import Classes.Hero;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class Labyrinth implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    // État du jeu
+    private Location currentLocation;
+    private final Hero hero;
+    private final Map<String, Location> locations;
+    private boolean inCombat = false;
+
+    // Indicateurs de fin de partie
+    private static boolean gameOver = false;
+    private static boolean winning = true;
+
+    // Durée du timer en millisecondes (5 mn = 300000 ms)
+    private static final long TIME_LIMIT_MS = 300000;
+
+    public Labyrinth() {
+        this.hero = new Hero(this);
+        this.locations = new HashMap<>();
+
+        // Sélection de la difficulté
+        chooseDifficulty();
+    }
+
+    /**
+     * Boucle de jeu principale.
+     */
+    public void start() {
+        CommandHandler commandHandler = new CommandHandler(this);
+        Scanner scanner = new Scanner(System.in);
+
+        // Mise en place d'un timer pour une partie "time limit"
+        scheduleGameOverTimer();
+
+        System.out.println("Welcome to this Labyrinth!");
+        if (currentLocation != null) {
+            currentLocation.describe();
+        }
+
+        // Boucle principale du jeu
+        while (!gameOver) {
+            checkCombatState();
+
+            System.out.print("> ");
+            String commandLine = scanner.nextLine();
+            commandHandler.handleCommand(commandLine);
+
+            // Vérifier si le joueur est arrivé à la fin
+            if (currentLocation != null 
+                    && "End of the Labyrinth".equals(currentLocation.getName())) {
+                winning = true;
+                gameOver = true;
+            }
+
+            // Vérifier si le héros est mort
+            if (hero.getHealth() <= 0) {
+                gameOver = true;
+                winning = false;
+                System.out.println("\nYou lost! Your hero has no more life.");
+            }
+        }
+
+        displayEndGameMessage();
+        // Appel direct pour quitter
+        commandHandler.handleCommand("QUIT");
+    }
+
+    /**
+     * Permet au joueur de choisir la difficulté (1, 2 ou 3).
+     */
+    private void chooseDifficulty() {
+        Scanner scanner = new Scanner(System.in);
+        boolean validDifficulty = false;
+
+        while (!validDifficulty) {
+            System.out.println("To start, choose a difficulty level between 1 and 3.");
+            System.out.print("> ");
+            String inputLevel = scanner.nextLine();
+            validDifficulty = initializeLocations(inputLevel);
+        }
+    }
+
+    /**
+     * Initialise les emplacements (locations) en chargeant un monde sérialisé
+     * correspondant au niveau choisi.
+     */
+    private boolean initializeLocations(String level) {
+        switch (level) {
+            case "1":
+            case "2":
+            case "3":
+                loadWorld(level);
+                return true;
+            default:
+                System.out.println("Unknown level.");
+                return false;
+        }
+    }
+
+    /**
+     * Charge un monde sérialisé (World1.dat, World2.dat, World3.dat).
+     */
+    private void loadWorld(String difficulty) {
+        String worldFile = "World" + difficulty + ".dat";
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(worldFile))) {
+            Labyrinth loadedLabyrinth = (Labyrinth) in.readObject();
+            this.copyFrom(loadedLabyrinth); 
+            System.out.println("LEVEL " + difficulty + " loaded successfully!");
+            if (this.getCurrentLocation() != null) {
+                this.getCurrentLocation().describe();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Failed to load the game: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Met en place un timer pour limiter la durée de la partie.
+     */
+    private void scheduleGameOverTimer() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (!gameOver) {
+                    gameOver = true;
+                    winning = false;
+                    System.out.println("\nTime's up! You have lost.");
+                    // On pourrait faire un System.exit(0), mais on laisse
+                    // la boucle while se terminer naturellement.
+                }
+            }
+        }, TIME_LIMIT_MS);
+    }
+
+    /**
+     * Affiche un message différent selon que le joueur a gagné ou perdu.
+     */
+    private void displayEndGameMessage() {
+        if (!winning) {
+            System.out.println("Game Over!");
+        } else {
+            System.out.println("Well done! You won!");
+        }
+        System.out.println("Thanks for playing!");
+    }
+
+    /**
+     * Vérifie l'état du combat pour afficher un message adéquat lors du changement.
+     */
+    private void checkCombatState() {
+        // Cette méthode peut être enrichie si nécessaire
+        // Dans l’exemple d’origine, il y avait un boolean 'temp' qui changeait d’état
+        // pour afficher "You are in combat !" ou "You won this battle !".
+        // On peut faire plus simple en comparant l’état précédent et actuel.
+        // Ici, on ne garde pas la logique "temp" car elle était un peu ambiguë.
+        // Tu peux adapter selon ta logique de jeu.
+    }
+
+    // === Méthodes getters/setters & copie de l'état === //
+
+    public boolean getInCombat() {
+        return this.inCombat;
+    }
+
+    public void setInCombat(boolean inCombat) {
+        this.inCombat = inCombat;
+    }
+
+    public Location getCurrentLocation() {
+        return currentLocation;
+    }
+
+    public void setCurrentLocation(Location location) {
+        this.currentLocation = location;
+    }
+
+    public Map<String, Location> getLocations() {
+        return locations;
+    }
+
+    public Hero getHero() {
+        return hero;
+    }
+
+    /**
+     * Copie l’état d’un autre Labyrinth dans l’instance courante.
+     */
+    public void copyFrom(Labyrinth loadedLabyrinth) {
+        // Copier l'emplacement actuel
+        this.currentLocation = loadedLabyrinth.getCurrentLocation();
+
+        // Copier les emplacements
+        this.locations.clear();
+        loadedLabyrinth.getLocations().forEach((key, value) -> {
+            this.locations.put(key, value);
+        });
+
+        // Copier l'état du héros
+        this.hero.copyFrom(loadedLabyrinth.getHero());
+
+        // Copier l'état du combat et la fin de partie si nécessaire
+        this.inCombat = loadedLabyrinth.getInCombat();
+        // gameOver/ winning sont statiques, donc à voir si tu veux les recopier,
+        // mais généralement, on ne le fait pas pour conserver la nouvelle session.
+    }
+}
+
+package gamev9fx;
+
+import game.Game; // <- À adapter si "Game" est dans un autre package
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+
+/**
+ * Classe JavaFX qui lance la fenêtre graphique et permet
+ * de démarrer le jeu textuel en console.
+ */
+public class GAMEV9FX extends Application {
+    
+    @Override
+    public void start(Stage primaryStage) {
+        Button startGameButton = new Button("Démarrer le jeu dans la console");
+        
+        // Au clic, on lance le jeu textuel dans un thread séparé
+        startGameButton.setOnAction(event -> {
+            // On exécute le jeu textuel dans un thread
+            // pour éviter de bloquer l'UI JavaFX
+            new Thread(() -> {
+                // Appel à la classe main de ton jeu console
+                Game.main(new String[0]);
+            }).start();
+        });
+        
+        // Mise en place de la scène JavaFX
+        StackPane root = new StackPane();
+        root.getChildren().add(startGameButton);
+        
+        Scene scene = new Scene(root, 300, 150);
+        primaryStage.setTitle("Lancement du jeu");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    /**
+     * Méthode main pour lancer l'application JavaFX.
+     */
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+
+
+
+
+
+
+
+
+
+
